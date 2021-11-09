@@ -4,5 +4,6 @@
   "documentation": "https://github.com/woder/meross_offline",
   "dependencies": [],
   "codeowners": [],
-  "requirements": []
+  "requirements": [],
+  "version": "0.0.1"
 }

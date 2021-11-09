@@ -17,13 +17,13 @@ from homeassistant.util import color as colorutil
 #Meross libs
 from . import config
 from meross_iot.supported_devices.light_bulbs import GenericBulb
-from meross_iot.supported_devices.humidifiers import GenericHumidifier
+#from meross_iot.supported_devices.humidifiers import GenericHumidifier
 from meross_iot.supported_devices.light_bulbs import to_rgb
 from .utils import mangle
 from .devices.light import MLight
-from .devices.humidifier import MHumidifierLight
+#from .devices.humidifier import MHumidifierLight
 
-_LOGGER = logging.getLogger("Meross_Light")
+_LOGGER = logging.getLogger("meross_offline")
 
 # Validation of the user's configuration
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -45,16 +45,20 @@ def setup_platform(hass, configha, add_entities, discovery_info=None):
     
     lights = []
     for dev in devices:
-        print(dev)
+        _LOGGER.debug(dev)
         device = cfg["devices"][dev]
+        _LOGGER.debug(device)
         key = mangle(dev)
         p["uuid"] = device["hardware"]["uuid"]
         p["devName"] = device["friendly_name"]
         p["devType"] = device["hardware"]["type"]
         p["hdwareVersion"] = device["hardware"]["version"]
         p["fmwareVersion"] = device["firmware"]["version"]
+        hassType = device.get("hassType", "unknown")
         if "msl" in p["devType"]:
             MLight(GenericBulb("token", key, None, **p), hass, add_entities)
-        elif p["devType"] == "msxh0":
-            df = MHumidifierLight(GenericHumidifier("token", key, None, **p), hass, add_entities)
+        elif "light" == hassType:
+            MLight(GenericBulb("token", key, None, **p), hass, add_entities)
+        #elif p["devType"] == "msxh0":
+        #    df = MHumidifierLight(GenericHumidifier("token", key, None, **p), hass, add_entities)
 

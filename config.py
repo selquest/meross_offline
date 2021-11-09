@@ -12,7 +12,7 @@ from meross_iot.supported_devices.light_bulbs import GenericBulb
 
 CONFIG = "~/.config/meross/config.json"
 
-_LOGGER = logging.getLogger("Meross_Light")
+_LOGGER = logging.getLogger("meross_offline")
 
 def exists(user=CONFIG, fail=True):
     cfgfile = Path.expanduser(Path(CONFIG))

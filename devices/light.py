@@ -16,9 +16,10 @@ from homeassistant.util import color as colorutil
 from meross_iot.supported_devices.light_bulbs import GenericBulb
 from meross_iot.supported_devices.light_bulbs import to_rgb
 
-_LOGGER = logging.getLogger("Meross_Light")
+_LOGGER = logging.getLogger("meross_offline")
 
 def rgb_to_color(color):
+    if color is None: return None
     blue = color & 255
     green = (color >> 8) & 255
     red = (color >> 16) & 255
@@ -29,7 +30,7 @@ class MLight():
 
     def __init__(self, dev, hass, add_entities):
         """Initialize a Meross Light"""
-        _LOGGER.warning("HI1!")
+        _LOGGER.info("Initializing MLight!")
         add_entities([MerossLight(dev)])
 
 class MerossLight(Light):
@@ -37,13 +38,15 @@ class MerossLight(Light):
 
     def __init__(self, light):
         """Initialize an AwesomeLight."""
+        _LOGGER.debug("Got GenericBulb, initializing MerossLight...")
         self._light = light
         self._name = light._name
         self._state = None
         self._brightness = None
-        self._rgb = None
+        self._rgb = 0xFFFFFF
         self._light.get_status()
-        _LOGGER.warning("HI!")
+        _LOGGER.info("Initalized light %s" % self._name)
+        _LOGGER.info("Initial state: %s" % self._light._state)
 
     @property
     def name(self):
@@ -54,10 +57,9 @@ class MerossLight(Light):
         """Turn on or control the light."""
         self._light.turn_on()
         rgb = self._light.get_light_color().get('rgb')
-        _LOGGER.warning(rgb)
         color = rgb_to_color(rgb)
         brightness = self._light.get_light_color().get('luminance')
-        _LOGGER.warning(kwargs)
+        _LOGGER.info(kwargs)
 
         if 'hs_color' in kwargs:
             h, s = kwargs['hs_color']
@@ -68,8 +70,9 @@ class MerossLight(Light):
         if 'brightness' in kwargs:
             brightness = kwargs['brightness'] / 255 * 100
 
-        _LOGGER.warning(color)
         self._light.set_light_color(rgb=color, luminance=brightness, capacity=5)
+        _LOGGER.info("Updated state: %s" % self._light._state)
+        
 
     def turn_off(self, **kwargs):
         """Instruct the light to turn off."""
@@ -85,6 +88,7 @@ class MerossLight(Light):
     @property
     def hs_color(self):
         color = self._light.get_status().get('rgb')
+        if color is None: color = 0xFFFFFF
         blue = color & 255
         green = (color >> 8) & 255
         red = (color >> 16) & 255
@@ -102,7 +106,7 @@ class MerossLight(Light):
 
         This is the only method that should fetch new data for Home Assistant.
         """
-        _LOGGER.info(self._light.get_status())
+        _LOGGER.debug("update(): %s" % self._light.get_status())
         
     @property
     def supported_features(self):
